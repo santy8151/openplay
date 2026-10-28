@@ -1,0 +1,13 @@
+[package]
+name = "pong"
+version = "1.0.0"
+edition = "2021"
+license = "MIT"
+description = "CyberPong 2099 — Deterministic 1P/2P Arcade Pong for OpenPlay Host ABI v0"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+path = "src/lib.rs"
+
+[dependencies]
+openplay-game-sdk = { path = "../../crates/game-sdk" }

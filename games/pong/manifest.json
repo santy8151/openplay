@@ -1,0 +1,38 @@
+{
+  "schema": 1,
+  "id": "dev.openplay.pong",
+  "name": "CyberPong 2099",
+  "version": "1.0.0",
+  "license": "MIT",
+  "author": {
+    "name": "OpenPlay Core",
+    "pubkey": "ed25519:O2onvM62pC1io6jQKm8Nc2UyFXcd4kOmOsBIoYtZ2ik="
+  },
+  "abi": "host-abi/0",
+  "entry": "game.wasm",
+  "display": {
+    "width": 480,
+    "height": 320,
+    "scale": "fit"
+  },
+  "permissions": ["audio", "storage", "net.p2p"],
+  "multiplayer": {
+    "mode": "p2p-lockstep",
+    "min": 1,
+    "max": 2,
+    "tickrate": 60
+  },
+  "mods": {
+    "enabled": true,
+    "lang": "lua",
+    "hooks": ["on_init", "on_tick", "on_event"]
+  },
+  "files": [
+    {
+      "path": "game.wasm",
+      "sha256": "3a7bd3e2360a3d29eea436fcfb7e44c735d117c42d1c1835420b6b9942dd4f1b",
+      "size": 18432
+    }
+  ],
+  "signature": "rG1K7pU0d2gV8jM6xH5yN9qL4wB2zF3cT1vR0mS7kP8aE5dG9hJ2lN4pQ6rS8tU0vW2xY4zA6bC8dE0fG2hI4g=="
+}

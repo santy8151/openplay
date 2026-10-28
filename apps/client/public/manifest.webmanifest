@@ -1,0 +1,18 @@
+{
+  "name": "OpenPlay — Cyber Arcade Wasm & P2P Ecosystem",
+  "short_name": "OpenPlay",
+  "description": "Plataforma open source (Apache-2.0) y federada para juegos casuales/arcade en WebAssembly con multijugador P2P y modding Lua seguro.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#07060d",
+  "theme_color": "#00f0ff",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "192x192 512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

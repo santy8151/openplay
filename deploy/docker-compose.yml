@@ -1,0 +1,103 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: openplay
+      POSTGRES_PASSWORD: openplay_dev_password
+      POSTGRES_DB: openplay
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ../apps/node/sql/schema/001_init.sql:/docker-entrypoint-initdb.d/001_init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U openplay"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    command: ["redis-server", "--save", "", "--appendonly", "no"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  coturn:
+    image: coturn/coturn:4.6-alpine
+    restart: unless-stopped
+    ports:
+      - "3478:3478/udp"
+      - "3478:3478/tcp"
+    volumes:
+      - ./coturn.conf:/etc/coturn/turnserver.conf:ro
+    command: ["-c", "/etc/coturn/turnserver.conf"]
+
+  node-a:
+    build:
+      context: ../apps/node
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      OPENPLAY_ADDR: ":8080"
+      OPENPLAY_NODE_NAME: "Neo-Bogota Node 01"
+      OPENPLAY_NODE_URL: "http://node-a:8080"
+      OPENPLAY_DATABASE_URL: "postgres://openplay:openplay_dev_password@postgres:5432/openplay?sslmode=disable"
+      OPENPLAY_REDIS_URL: "redis://redis:6379/0"
+      OPENPLAY_TURN_SECRET: "openplay-coturn-dev-hmac-secret"
+      OPENPLAY_TURN_URIS: "turn:localhost:3478?transport=udp,turn:localhost:3478?transport=tcp"
+      OPENPLAY_PEERS: "http://node-b:8081"
+    ports:
+      - "8080:8080"
+
+  node-b:
+    build:
+      context: ../apps/node
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      OPENPLAY_ADDR: ":8081"
+      OPENPLAY_NODE_NAME: "Tokyo Grid Peer 02"
+      OPENPLAY_NODE_URL: "http://node-b:8081"
+      OPENPLAY_DATABASE_URL: "postgres://openplay:openplay_dev_password@postgres:5432/openplay?sslmode=disable"
+      OPENPLAY_REDIS_URL: "redis://redis:6379/1"
+      OPENPLAY_TURN_SECRET: "openplay-coturn-dev-hmac-secret"
+      OPENPLAY_TURN_URIS: "turn:localhost:3478?transport=udp,turn:localhost:3478?transport=tcp"
+      OPENPLAY_PEERS: "http://node-a:8080"
+    ports:
+      - "8081:8081"
+
+  caddy:
+    image: caddy:2.8-alpine
+    restart: unless-stopped
+    depends_on:
+      - node-a
+      - node-b
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+
+volumes:
+  pgdata:
+  caddy_data:
+  caddy_config:

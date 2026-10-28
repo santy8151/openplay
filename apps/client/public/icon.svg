@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <defs>
+    <linearGradient id="cyberGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00f0ff" />
+      <stop offset="100%" stop-color="#ff2bd6" />
+    </linearGradient>
+  </defs>
+  <rect width="256" height="256" rx="36" fill="#07060d" />
+  <polygon points="28,52 52,28 228,28 228,204 204,228 28,228" fill="#15122a" stroke="url(#cyberGrad)" stroke-width="6" />
+  <polygon points="96,76 184,128 96,180" fill="#00f0ff" />
+  <polygon points="104,88 172,128 104,168" fill="#ff2bd6" opacity="0.65" />
+  <circle cx="64" cy="64" r="6" fill="#fcee09" />
+  <text x="128" y="214" text-anchor="middle" fill="#e8e6ff" font-family="monospace" font-weight="bold" font-size="20" letter-spacing="4">OPENPLAY</text>
+</svg>

@@ -1,0 +1,18 @@
+[workspace]
+resolver = "2"
+members = [
+  "crates/game-sdk",
+  "games/pong",
+  "games/arena",
+]
+
+[workspace.package]
+edition = "2021"
+license = "Apache-2.0"
+authors = ["OpenPlay Community"]
+
+[profile.release]
+opt-level = "z"
+lto = true
+codegen-units = 1
+panic = "abort"

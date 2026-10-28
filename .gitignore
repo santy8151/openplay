@@ -1,0 +1,11 @@
+node_modules/
+dist/
+target/
+*.log
+.env
+.env.local
+.DS_Store
+coverage/
+playwright-report/
+test-results/
+*.tsbuildinfo

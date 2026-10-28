@@ -1,0 +1,38 @@
+{
+  "schema": 1,
+  "id": "dev.openplay.arena",
+  "name": "Neon Grid Arena",
+  "version": "1.0.0",
+  "license": "Apache-2.0",
+  "author": {
+    "name": "OpenPlay Core",
+    "pubkey": "ed25519:O2onvM62pC1io6jQKm8Nc2UyFXcd4kOmOsBIoYtZ2ik="
+  },
+  "abi": "host-abi/0",
+  "entry": "game.wasm",
+  "display": {
+    "width": 480,
+    "height": 320,
+    "scale": "fit"
+  },
+  "permissions": ["audio", "storage", "net.p2p"],
+  "multiplayer": {
+    "mode": "p2p-rollback",
+    "min": 1,
+    "max": 4,
+    "tickrate": 60
+  },
+  "mods": {
+    "enabled": true,
+    "lang": "lua",
+    "hooks": ["on_init", "on_tick", "on_event"]
+  },
+  "files": [
+    {
+      "path": "game.wasm",
+      "sha256": "9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08",
+      "size": 24576
+    }
+  ],
+  "signature": "mN8bV6cX4zL2kJ0hG8fD6sA4pO2iU0yT8rE6wQ4aS2dF0gH8jK6lZ4xC2vB0nM8qW6eR4tY2uI0oP8aS6dF4g=="
+}

@@ -1,0 +1,41 @@
+{
+	auto_https off
+	admin off
+}
+
+# Primary OpenPlay Shell & Node API reverse proxy
+http://localhost, http://openplay.local {
+	header {
+		Strict-Transport-Security "max-age=63072000; includeSubDomains; preload"
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "DENY"
+		Referrer-Policy "no-referrer"
+		Permissions-Policy "camera=(), microphone=(), geolocation=(), payment=(), usb=()"
+		Cross-Origin-Opener-Policy "same-origin"
+		Cross-Origin-Resource-Policy "same-origin"
+		Content-Security-Policy "default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self' ws: wss: http://localhost:8080 http://localhost:8081; frame-src 'self' http://games.openplay.local;"
+		-Server
+	}
+
+	handle /v1/* {
+		reverse_proxy node-a:8080
+	}
+
+	handle {
+		reverse_proxy host.docker.internal:5173
+	}
+}
+
+# Isolated Game Runtime Origin (strict networkless sandbox for untrusted Wasm & Lua workers)
+http://games.openplay.local {
+	header {
+		X-Content-Type-Options "nosniff"
+		Referrer-Policy "no-referrer"
+		Permissions-Policy "camera=(), microphone=(), geolocation=(), payment=(), usb=(), storage-access=()"
+		Cross-Origin-Resource-Policy "cross-origin"
+		Content-Security-Policy "default-src 'none'; script-src 'self' 'wasm-unsafe-eval' blob:; style-src 'unsafe-inline'; img-src data: blob:; connect-src 'none'; worker-src blob:;"
+		-Server
+	}
+
+	reverse_proxy host.docker.internal:5173
+}

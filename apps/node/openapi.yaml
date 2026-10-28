@@ -1,0 +1,639 @@
+openapi: 3.1.0
+info:
+  title: OpenPlay Federated Node API
+  version: 0.1.0-beta
+  description: >-
+    OpenPlay Federated Arcade Node REST API and WebSocket Signaling Specification.
+    Supports cryptographically signed game manifests (RFC 8785 JCS + Ed25519),
+    federated catalog indexing, ephemeral TURN credentials (HMAC-SHA1), P2P room
+    management, and abuse reporting.
+  license:
+    name: Apache-2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0.html
+servers:
+  - url: http://localhost:8080
+    description: Local development node
+  - url: https://node.openplay.example
+    description: Reference federated node
+paths:
+  /v1/catalog:
+    get:
+      summary: List catalog games (local and federated)
+      operationId: listCatalog
+      parameters:
+        - name: tag
+          in: query
+          schema:
+            type: string
+          description: Filter by tag (e.g. arcade, p2p, mods, retro)
+        - name: players
+          in: query
+          schema:
+            type: integer
+          description: Filter by supported player count
+        - name: mods
+          in: query
+          schema:
+            type: boolean
+          description: Filter by Lua mod support
+        - name: license
+          in: query
+          schema:
+            type: string
+          description: Filter by SPDX license identifier
+        - name: q
+          in: query
+          schema:
+            type: string
+          description: Search query matching game title or ID
+      responses:
+        "200":
+          description: Filtered list of verified games
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items, total]
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/CatalogEntry"
+                  total:
+                    type: integer
+  /v1/games:
+    post:
+      summary: Publish a signed game package and manifest
+      operationId: publishGame
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PublishGameRequest"
+      responses:
+        "201":
+          description: Game version verified and published
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CatalogEntry"
+        "400":
+          description: Invalid manifest, unsupported SPDX license, package exceeds 20MB, or invalid Ed25519 signature
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /v1/games/{id}:
+    get:
+      summary: Get game metadata and latest signed manifest
+      operationId: getGame
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Game detail and manifest
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CatalogEntry"
+        "404":
+          description: Game not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /v1/games/{id}/versions:
+    get:
+      summary: List all published versions of a game
+      operationId: listGameVersions
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Version history for the game
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [game_id, versions]
+                properties:
+                  game_id:
+                    type: string
+                  versions:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/GameVersionEntry"
+  /v1/index.json:
+    get:
+      summary: Get the Ed25519-signed federated node index
+      operationId: getFederatedIndex
+      responses:
+        "200":
+          description: Signed federated index document
+          headers:
+            ETag:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FederatedIndex"
+        "304":
+          description: Not Modified (ETag matched)
+  /v1/federation/peers:
+    get:
+      summary: List federated peer nodes and sync status
+      operationId: listFederationPeers
+      responses:
+        "200":
+          description: Known federated peers
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [peers]
+                properties:
+                  peers:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/PeerStatus"
+  /v1/auth/guest:
+    post:
+      summary: Issue an ephemeral guest session token
+      operationId: createGuestSession
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                alias:
+                  type: string
+      responses:
+        "200":
+          description: Ephemeral guest identity and token
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthSession"
+  /v1/auth/oidc/callback:
+    post:
+      summary: Exchange OIDC authorization code for author session
+      operationId: oidcCallback
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [code, provider]
+              properties:
+                code:
+                  type: string
+                provider:
+                  type: string
+      responses:
+        "200":
+          description: Authenticated author session
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthSession"
+  /v1/turn-credentials:
+    get:
+      summary: Generate ephemeral TURN REST HMAC-SHA1 credentials
+      operationId: getTurnCredentials
+      responses:
+        "200":
+          description: Short-lived WebRTC ICE/TURN server configuration
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TurnCredentials"
+  /v1/rooms:
+    get:
+      summary: List active public P2P multiplayer rooms
+      operationId: listRooms
+      parameters:
+        - name: game_id
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Active multiplayer rooms
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [rooms]
+                properties:
+                  rooms:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/RoomSummary"
+    post:
+      summary: Create a new multiplayer signaling room (1-8 players)
+      operationId: createRoom
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [game_id]
+              properties:
+                game_id:
+                  type: string
+                max_players:
+                  type: integer
+                  minimum: 1
+                  maximum: 8
+                private:
+                  type: boolean
+      responses:
+        "201":
+          description: Room created with 6-character alphanumeric code
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RoomSummary"
+  /v1/rooms/{id}:
+    delete:
+      summary: Close or leave a room
+      operationId: deleteRoom
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: Room removed
+  /v1/reports:
+    post:
+      summary: Submit an abuse or license violation report
+      operationId: createReport
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [game_id, reason]
+              properties:
+                game_id:
+                  type: string
+                version:
+                  type: string
+                reason:
+                  type: string
+                details:
+                  type: string
+      responses:
+        "201":
+          description: Report logged for node operator review
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [id, status, created_at]
+                properties:
+                  id:
+                    type: string
+                  status:
+                    type: string
+                  created_at:
+                    type: string
+                    format: date-time
+  /v1/healthz:
+    get:
+      summary: Node health probe
+      operationId: getHealthz
+      responses:
+        "200":
+          description: Node is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [status, node, version]
+                properties:
+                  status:
+                    type: string
+                  node:
+                    type: string
+                  version:
+                    type: string
+  /v1/metrics:
+    get:
+      summary: Prometheus text-format node metrics
+      operationId: getMetrics
+      responses:
+        "200":
+          description: Prometheus metrics payload
+          content:
+            text/plain:
+              schema:
+                type: string
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    GameManifest:
+      type: object
+      required:
+        - schema
+        - id
+        - name
+        - version
+        - license
+        - author
+        - abi
+        - entry
+        - display
+        - permissions
+        - files
+        - signature
+      properties:
+        schema:
+          type: integer
+          const: 1
+        id:
+          type: string
+        name:
+          type: string
+        version:
+          type: string
+        license:
+          type: string
+        author:
+          type: object
+          required: [name, pubkey]
+          properties:
+            name:
+              type: string
+            pubkey:
+              type: string
+        abi:
+          type: string
+          const: host-abi/0
+        entry:
+          type: string
+        display:
+          type: object
+          required: [width, height, scale]
+          properties:
+            width:
+              type: integer
+            height:
+              type: integer
+            scale:
+              type: string
+              enum: [fit, integer, stretch]
+        permissions:
+          type: array
+          items:
+            type: string
+            enum: [audio, storage, net.p2p]
+        multiplayer:
+          type: object
+          properties:
+            mode:
+              type: string
+            min:
+              type: integer
+            max:
+              type: integer
+            tickrate:
+              type: integer
+        mods:
+          type: object
+          properties:
+            enabled:
+              type: boolean
+            lang:
+              type: string
+            hooks:
+              type: array
+              items:
+                type: string
+        files:
+          type: array
+          items:
+            type: object
+            required: [path, sha256, size]
+            properties:
+              path:
+                type: string
+              sha256:
+                type: string
+              size:
+                type: integer
+        signature:
+          type: string
+    CatalogEntry:
+      type: object
+      required:
+        - id
+        - name
+        - version
+        - license
+        - verified
+        - origin_node_url
+        - tags
+        - manifest
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        version:
+          type: string
+        license:
+          type: string
+        verified:
+          type: boolean
+        origin_node_url:
+          type: string
+        package_url:
+          type: string
+        package_sha256:
+          type: string
+        tags:
+          type: array
+          items:
+            type: string
+        manifest:
+          $ref: "#/components/schemas/GameManifest"
+    GameVersionEntry:
+      type: object
+      required: [version, package_sha256, package_size, created_at, manifest]
+      properties:
+        version:
+          type: string
+        package_url:
+          type: string
+        package_sha256:
+          type: string
+        package_size:
+          type: integer
+        created_at:
+          type: string
+          format: date-time
+        manifest:
+          $ref: "#/components/schemas/GameManifest"
+    PublishGameRequest:
+      type: object
+      required: [manifest, package_sha256, package_size]
+      properties:
+        manifest:
+          $ref: "#/components/schemas/GameManifest"
+        package_url:
+          type: string
+        package_sha256:
+          type: string
+        package_size:
+          type: integer
+        tags:
+          type: array
+          items:
+            type: string
+    FederatedIndex:
+      type: object
+      required: [schema, node, updated, games, peers, signature]
+      properties:
+        schema:
+          type: integer
+          const: 1
+        node:
+          type: object
+          required: [name, url, pubkey]
+          properties:
+            name:
+              type: string
+            url:
+              type: string
+            pubkey:
+              type: string
+        updated:
+          type: string
+          format: date-time
+        games:
+          type: array
+          items:
+            type: object
+            required: [id, version, manifest_url, package_url, package_sha256, license, tags]
+            properties:
+              id:
+                type: string
+              version:
+                type: string
+              manifest_url:
+                type: string
+              package_url:
+                type: string
+              package_sha256:
+                type: string
+              license:
+                type: string
+              tags:
+                type: array
+                items:
+                  type: string
+        peers:
+          type: array
+          items:
+            type: string
+        signature:
+          type: string
+    PeerStatus:
+      type: object
+      required: [url, name, pubkey, status]
+      properties:
+        url:
+          type: string
+        name:
+          type: string
+        pubkey:
+          type: string
+        status:
+          type: string
+        last_seen_at:
+          type: string
+          format: date-time
+        games_count:
+          type: integer
+    AuthSession:
+      type: object
+      required: [token, user_id, alias, role, expires_at]
+      properties:
+        token:
+          type: string
+        user_id:
+          type: string
+        alias:
+          type: string
+        role:
+          type: string
+          enum: [guest, author, operator]
+        expires_at:
+          type: string
+          format: date-time
+    TurnCredentials:
+      type: object
+      required: [username, credential, ttl, uris]
+      properties:
+        username:
+          type: string
+        credential:
+          type: string
+        ttl:
+          type: integer
+        uris:
+          type: array
+          items:
+            type: string
+    RoomSummary:
+      type: object
+      required: [code, game_id, host_peer_id, player_count, max_players, created_at]
+      properties:
+        code:
+          type: string
+        game_id:
+          type: string
+        host_peer_id:
+          type: string
+        player_count:
+          type: integer
+        max_players:
+          type: integer
+        private:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+    ErrorResponse:
+      type: object
+      required: [error, code]
+      properties:
+        error:
+          type: string
+        code:
+          type: string

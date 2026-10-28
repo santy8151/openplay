@@ -1,0 +1,43 @@
+{
+  "description": "Shared cross-language RFC 8785 (JCS) + SHA-256 + RFC 8032 (Ed25519) test vectors for TypeScript and Go",
+  "seedHex": "9d61b19deffd5a60ba844af492ec2cc44449c5697b326919703bac031cae7f60",
+  "publicKeyHex": "d75a980182b10ab7d54bfed3c964073a0ee172f3daa62325af021a68f707511a",
+  "formattedPubkey": "ed25519:11qYAYKxCrfVS/7TyWQHOg7hcvPapiMlrwIaaPcHURo=",
+  "manifestWithoutSignature": {
+    "schema": 1,
+    "id": "dev.openplay.pong",
+    "name": "CyberPong 2099",
+    "version": "1.0.0",
+    "license": "MIT",
+    "author": {
+      "name": "OpenPlay Core",
+      "pubkey": "ed25519:11qYAYKxCrfVS/7TyWQHOg7hcvPapiMlrwIaaPcHURo="
+    },
+    "abi": "host-abi/0",
+    "entry": "game.wasm",
+    "display": {
+      "width": 480,
+      "height": 320,
+      "scale": "fit"
+    },
+    "permissions": ["audio", "storage", "net.p2p"],
+    "multiplayer": {
+      "mode": "p2p-lockstep",
+      "min": 1,
+      "max": 2,
+      "tickrate": 60
+    },
+    "mods": {
+      "enabled": true,
+      "lang": "lua",
+      "hooks": ["on_init", "on_tick", "on_event"]
+    },
+    "files": [
+      {
+        "path": "game.wasm",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "size": 4096
+      }
+    ]
+  }
+}

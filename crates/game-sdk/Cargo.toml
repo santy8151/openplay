@@ -1,0 +1,9 @@
+[package]
+name = "openplay-game-sdk"
+version = "0.1.0"
+edition = "2021"
+license = "Apache-2.0"
+description = "Safe Rust SDK for the OpenPlay deterministic WebAssembly Host ABI v0 (host-abi/0)"
+
+[lib]
+path = "src/lib.rs"

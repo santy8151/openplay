@@ -1,0 +1,13 @@
+[package]
+name = "arena"
+version = "1.0.0"
+edition = "2021"
+license = "Apache-2.0"
+description = "Neon Grid Arena — Deterministic 2-4 Player P2P Cyberpunk Brawler for OpenPlay Host ABI v0"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+path = "src/lib.rs"
+
+[dependencies]
+openplay-game-sdk = { path = "../../crates/game-sdk" }
