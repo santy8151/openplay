@@ -86,6 +86,8 @@ export function App(): JSX.Element {
   const [reportModalOpen, setReportModalOpen] = useState(false);
   const [reportTargetId, setReportTargetId] = useState('dev.openplay.pong');
   const [reportReason, setReportReason] = useState('');
+  const [resourceSupportEnabled, setResourceSupportEnabled] = useState(false);
+  const [supportConsentOpen, setSupportConsentOpen] = useState(false);
 
   // Detail Screen cryptographic verification state
   const [cryptoAuditStatus, setCryptoAuditStatus] = useState<{
@@ -173,6 +175,23 @@ export function App(): JSX.Element {
   useEffect(() => {
     cyberSynth.uiSoundEnabled = uiAudio;
   }, [uiAudio]);
+
+  useEffect(() => {
+    const disableResourceSupport = () => setResourceSupportEnabled(false);
+    const handleVisibility = () => {
+      if (document.hidden) {
+        disableResourceSupport();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibility);
+    window.addEventListener('beforeunload', disableResourceSupport);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibility);
+      window.removeEventListener('beforeunload', disableResourceSupport);
+    };
+  }, []);
 
   // Run live network telemetry graph when on the LAB screen
   useEffect(() => {
@@ -449,48 +468,65 @@ export function App(): JSX.Element {
         {screen === 'lobby' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
             <Panel variant="cyan" cornerTag="BETA ABI v0 // APACHE-2.0">
-              <div
-                style={{
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-                  gap: '1.5rem',
-                  alignItems: 'center'
-                }}
-              >
-                <div>
-                  <div style={{ display: 'flex', gap: '0.45rem', flexWrap: 'wrap', marginBottom: '0.6rem' }}>
-                    <span className="cyber-badge cyan">NÚCLEO WASM DETERMINISTA</span>
-                    <span className="cyber-badge magenta">DISTRIBUCIÓN FEDERADA ED25519</span>
-                    <span className="cyber-badge yellow">MODDING LUA 2MS WATCHDOG</span>
+              <div className="feature-hero">
+                <div className="feature-copy">
+                  <div className="mini-pill-row">
+                    <span className="cyber-badge cyan">WASM DETERMINISTA</span>
+                    <span className="cyber-badge magenta">PORTS AUTORIZADOS</span>
+                    <span className="cyber-badge green">STREAMING LEGÍTIMO</span>
                   </div>
-                  <GlitchTitle text="NEÓN SOBRE ASFALTO MOJADO" size="2.1rem" />
-                  <p style={{ color: 'var(--text-dim)', fontSize: '1rem', margin: '0.75rem 0 1.15rem', maxWidth: '64ch' }}>
-                    Ecosistema open source y autogestionado para ejecutar juegos arcade WebAssembly de alto rendimiento en
-                    navegadores móviles y desktop. Sin tiendas centralizadas, con multijugador P2P WebRTC y paquetes firmados
-                    criptográficamente.
+                  <GlitchTitle text="CITY OF LIGHT // PORTAL 2099" size="2.2rem" />
+                  <p className="feature-text">
+                    OpenPlay está pensado como una plataforma abierta para descubrir juegos originales, títulos de la comunidad,
+                    ports autorizados y experiencias de streaming con acuerdos explícitos. No se usan tareas ocultas del navegador
+                    ni minería del hardware del jugador: solo consentimiento claro y apagado inmediato al salir.
                   </p>
-                  <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+                  <div className="cta-row">
                     <Button variant="primary" onClick={() => navigate('play', 'dev.openplay.pong')}>
                       ⚡ JACK IN // CYBERPONG 2099
                     </Button>
-                    <Button variant="magenta" onClick={() => navigate('play', 'dev.openplay.arena')}>
-                      🕹 ARENA MULTIJUGADOR P2P
+                    <Button variant="magenta" onClick={() => navigate('rooms')}>
+                      🕹 SALAS P2P
                     </Button>
-                    <Button variant="ghost" onClick={() => navigate('nodes')}>
-                      EXPLORAR NODOS FEDERADOS
+                    <Button variant="ghost" onClick={() => setSupportConsentOpen(true)}>
+                      🧩 APOYAR INFRAESTRUCTURA
                     </Button>
                   </div>
+                  <ul className="priority-list">
+                    <li>Licencias abiertas y verificación Ed25519 en cada paquete.</li>
+                    <li>Ports y conversiones con permiso explícito del autor o equipo.</li>
+                    <li>Streaming solo con acuerdos documentados y sin ejecución silenciosa.</li>
+                  </ul>
                 </div>
 
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.7rem' }}>
-                  <HUDBar label="LATENCIA P2P MEDIA" valueText="18 MS (WEBRTC DIRECT)" percentage={88} color="green" />
-                  <HUDBar label="NODOS FEDERADOS ACTIVOS" valueText={`${nodes.length} NODOS VERIFICADOS`} percentage={100} color="cyan" />
-                  <HUDBar label="PRESUPUESTO JS INICIAL" valueText="48 KB GZ (<150 KB)" percentage={32} color="magenta" />
+                <div className="feature-side">
+                  <div className="signal-panel">
+                    <div className="signal-header">LIVE // CITY SIGNAL</div>
+                    <div className="signal-grid">
+                      <div>
+                        <span className="muted">Nodos activos</span>
+                        <strong>{nodes.length}</strong>
+                      </div>
+                      <div>
+                        <span className="muted">Latencia media</span>
+                        <strong>18ms</strong>
+                      </div>
+                      <div>
+                        <span className="muted">Port support</span>
+                        <strong>4/5</strong>
+                      </div>
+                      <div>
+                        <span className="muted">Estado</span>
+                        <strong className="success">OK</strong>
+                      </div>
+                    </div>
+                    <HUDBar label="CAPACIDAD DE SERVIDORES" valueText="82% ONLINE" percentage={82} color="cyan" />
+                    <HUDBar label="VERIFICACIÓN DE PPA" valueText="ED25519 OK" percentage={94} color="green" />
+                  </div>
                 </div>
               </div>
             </Panel>
 
-            {/* Search & Tag Filters */}
             <div
               style={{
                 display: 'flex',
@@ -521,6 +557,45 @@ export function App(): JSX.Element {
                   onInput={(e) => setSearchQuery((e.target as HTMLInputElement).value)}
                 />
               </div>
+            </div>
+
+            <div className="feature-grid">
+              <Panel title="PORTS Y STREAMING AUTORIZADOS" cornerTag="COMUNIDAD // LICENCIAS" variant="magenta">
+                <div className="feature-grid-row">
+                  <div className="mini-feature-card">
+                    <span className="mini-label">01 // OPEN WORLD</span>
+                    <strong>Ciudad ciberpunk original</strong>
+                    <p>Prototipo de mundo abierto con misiones, zonas, vehículos y NPCs diseñados para WebAssembly.</p>
+                  </div>
+                  <div className="mini-feature-card">
+                    <span className="mini-label">02 // PORTS</span>
+                    <strong>Compatibilidad con IP</strong>
+                    <p>Se aceptan ports si hay autoría o licencia abierta, con revisión explícita y firma del paquete.</p>
+                  </div>
+                  <div className="mini-feature-card">
+                    <span className="mini-label">03 // CLOUD</span>
+                    <strong>Streaming legítimo</strong>
+                    <p>Distribución y nube bajo acuerdos concretos, nunca por ejecución silenciosa ni carga del cliente.</p>
+                  </div>
+                </div>
+              </Panel>
+
+              <Panel title="ESTADO DE SOPORTE" cornerTag="SIN MINERÍA" variant="cyan">
+                <div className="feature-grid-row small-row">
+                  <div className="support-state-card">
+                    <span className="mini-label">CPU/GPU</span>
+                    <strong>{resourceSupportEnabled ? 'DESACTIVADO' : 'NO SE USA'}</strong>
+                  </div>
+                  <div className="support-state-card">
+                    <span className="mini-label">CONSENTIMIENTO</span>
+                    <strong>{resourceSupportEnabled ? 'ACEPTADO' : 'PENDIENTE'}</strong>
+                  </div>
+                  <div className="support-state-card">
+                    <span className="mini-label">SALIDA</span>
+                    <strong>SE APAGA</strong>
+                  </div>
+                </div>
+              </Panel>
             </div>
 
             {/* Catalog Grid */}
@@ -927,7 +1002,6 @@ export function App(): JSX.Element {
                 <Button
                   variant="danger"
                   onClick={() => {
-                    // Simulate receiving an index.json with a tampered signature from a rogue peer
                     const rogueIndex = {
                       ...nodes[0]!.index,
                       node: { ...nodes[0]!.index.node, name: 'Rogue Tampered Peer' }
@@ -1171,6 +1245,26 @@ export function App(): JSX.Element {
               </div>
             </Panel>
 
+            <Panel title="APOYO VOLUNTARIO DE INFRAESTRUCTURA" cornerTag="SIN MINERÍA • CONSENTIMIENTO EXPLÍCITO" variant="magenta">
+              <div className="support-panel">
+                <p>
+                  Este toggle activa solo un flujo de apoyo voluntario para infraestructura del proyecto. No se usa CPU ni GPU del
+                  navegador en segundo plano, no se ejecuta minería, y se desactiva automáticamente cuando la pestaña queda oculta,
+                  se cierra o se sale de la sesión.
+                </p>
+                <div className="support-meta">
+                  <span className={`support-dot ${resourceSupportEnabled ? 'on' : ''}`} />
+                  <strong>{resourceSupportEnabled ? 'APOYO ACTIVO' : 'APOYO INACTIVO'}</strong>
+                </div>
+                <Button
+                  variant={resourceSupportEnabled ? 'primary' : 'ghost'}
+                  onClick={() => setSupportConsentOpen(true)}
+                >
+                  {resourceSupportEnabled ? 'CONFIGURAR APOYO' : 'ACEPTAR APOYO'}
+                </Button>
+              </div>
+            </Panel>
+
             <Panel title="PRIVACIDAD (LEY 1581 COLOMBIA & GDPR) + TAKEDOWN" cornerTag="STRIDE MITIGATED" variant="magenta">
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', fontSize: '0.88rem', color: 'var(--text-dim)' }}>
                 <p>
@@ -1265,6 +1359,38 @@ export function App(): JSX.Element {
           </div>
         )}
       </main>
+
+      <Modal
+        open={supportConsentOpen}
+        title="APOYO VOLUNTARIO A INFRAESTRUCTURA"
+        onClose={() => setSupportConsentOpen(false)}
+      >
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
+          <p style={{ color: 'var(--text)', margin: 0 }}>
+            Aceptas apoyar la infraestructura de OpenPlay con un flujo claro y explícito. Este apoyo no usa minería ni tareas
+a ocultas en el navegador: solo se activa tras tu confirmación y se desactiva al salir o cerrar la pestaña.
+          </p>
+          <p style={{ color: 'var(--text-dim)', margin: 0, fontSize: '0.85rem' }}>
+            Se puede usar para servidores, hosting, almacenamiento o distribución de paquetes siguiendo acuerdos documentados y
+            permitidos por el proyecto.
+          </p>
+          <div style={{ display: 'flex', gap: '0.65rem', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+            <Button variant="ghost" onClick={() => setSupportConsentOpen(false)}>
+              CANCELAR
+            </Button>
+            <Button
+              variant="primary"
+              onClick={() => {
+                setResourceSupportEnabled(true);
+                setSupportConsentOpen(false);
+                pushToast('APOYO ACTIVADO', 'La infraestructura queda habilitada solo tras tu aprobación explícita.', 'green');
+              }}
+            >
+              ACEPTAR Y ACTIVAR
+            </Button>
+          </div>
+        </div>
+      </Modal>
 
       {/* Takedown / Abuse Report Modal */}
       <Modal
