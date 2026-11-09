@@ -429,7 +429,7 @@ export function App(): JSX.Element {
               className={`nav-tab ${screen === 'computepool' ? 'active' : ''}`}
               onClick={() => navigate('computepool')}
             >
-              POOL & CONTRATO
+              STELLAR SOROBAN
             </button>
             <button
               type="button"

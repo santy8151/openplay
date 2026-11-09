@@ -1,17 +1,23 @@
-# ⚡ OPENPLAY // 2099 — Federated Wasm Arcade, P2P Multiplayer & Safe Modding Ecosystem
+# ⚡ OPENPLAY // 2099 — Federated Wasm Arcade, Cloud GPU Streaming & Stellar Soroban Ecosystem
 
+[![Stellar](https://img.shields.io/badge/Stellar-Soroban_Testnet-7D00FF.svg?logo=stellar)](./docs/stellar-hackathon.md)
+[![Smart Contract](https://img.shields.io/badge/Smart_Contract-Soroban_Rust_%2F_Wasm-00f0ff.svg)](./contracts/soroban-openplay)
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache_2.0-00f0ff.svg)](./LICENSE)
 [![ABI: host-abi/0](https://img.shields.io/badge/Wasm_ABI-host--abi%2F0-ff2bd6.svg)](./AGENTS.md)
 [![Design: Cyberpunk Neon](https://img.shields.io/badge/UI-Cyberpunk_Neon-fcee09.svg)](./apps/client)
 
-**OpenPlay** es un ecosistema open source (**Apache-2.0**), modular y federado para descubrir, verificar y ejecutar juegos casuales/arcade compilados a **WebAssembly (`host-abi/0`)** directamente en navegadores modernos (PWA en iOS Safari, Android Chrome y Desktop), con **multijugador P2P sobre WebRTC**, **laboratorio de caos de red y replays deterministas**, y **pipeline de modding opt-in en Lua con sandbox y watchdog de 2 ms**.
+**OpenPlay** es un ecosistema open source (**Apache-2.0**), modular y federado para descubrir, verificar y ejecutar juegos compilados a **WebAssembly**, con **212 Ports Web nativos** (Celeste, Undertale, Doom, GTA, Balatro, Half-Life...), **Cloud Gaming con GPU NVIDIA RTX vía WebRTC**, y **micropagos descentralizados sobre Stellar Soroban** con contratos inteligentes en Rust/Wasm.
+
+> 🏆 **Edición Especial Stellar Blockchain Hackathon**: Consulta el [Whitepaper y Guía de Pitch para Jueces](./docs/stellar-hackathon.md).
 
 ---
 
 ## 🏗️ Arquitectura y Layout del Monorepo
 
 ```text
-/apps/client        PWA Cyberpunk ("Neón sobre asfalto mojado", Preact + TS + Vite + Workbox)
+/contracts/soroban-openplay  Contrato Soroban en Rust/Wasm (Micropagos XLM/USDC, GPU Pool y Torneos)
+/contracts/OpenPlayComputePool.sol  Contrato de referencia Solidity para pool descentralizado
+/apps/client        PWA Cyberpunk (Preact + TS + Vite + Workbox + Freighter Stellar Wallet)
 /apps/node          Nodo Federado REST (/v1) + Señalización WebSocket + Crawler ETag (Go 1.23)
 /packages/abi       Tipos TS del Host ABI v0 + validador/loader Wasm + compilador de cartuchos Wasm
 /packages/manifest  JSON Schema 2020-12 + canonicalización RFC 8785 (JCS) + firmas Ed25519 (TS/Go)
@@ -21,7 +27,7 @@
 /games/pong         CyberPong 2099 (1P vs IA / 2P Local / P2P Lockstep, Rust + Wasm ABI v0)
 /games/arena        Neon Arena P2P (2-4 jugadores con proyectiles, dash y rollback/lockstep)
 /deploy             docker-compose.yml (node-a, node-b, postgres 16, redis 7, coturn, caddy)
-/docs               Arquitectura, Threat Model (STRIDE), ADRs (0001-0004), Guías de Autor y Nodo
+/docs               Arquitectura, Pitch Stellar Soroban, Threat Model, ADRs y Guías
 ```
 
 ---

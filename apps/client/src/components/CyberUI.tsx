@@ -45,6 +45,7 @@ export interface ButtonProps {
   ariaLabel?: string;
   type?: 'button' | 'submit';
   className?: string;
+  style?: JSX.CSSProperties;
   children: ComponentChildren;
 }
 
@@ -56,6 +57,7 @@ export function Button({
   ariaLabel,
   type = 'button',
   className = '',
+  style,
   children
 }: ButtonProps): JSX.Element {
   const variantClass = variant === 'default' ? '' : `btn-${variant}`;
@@ -64,6 +66,7 @@ export function Button({
       type={type}
       aria-label={ariaLabel}
       disabled={disabled || loading}
+      style={style}
       className={`cyber-btn ${variantClass} ${className}`.trim()}
       onMouseEnter={() => cyberSynth.playUiTone('hover')}
       onClick={() => {

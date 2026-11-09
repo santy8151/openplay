@@ -4,6 +4,7 @@ members = [
   "crates/game-sdk",
   "games/pong",
   "games/arena",
+  "contracts/soroban-openplay",
 ]
 
 [workspace.package]
