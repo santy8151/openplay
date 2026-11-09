@@ -50,7 +50,7 @@ describe('@openplay/mods — Lua Sandbox Security, Watchdog Termination & Opt-In
     const emitted: EmittedModCommand[] = [];
 
     const sandbox = new ModSandboxInstance(exampleMod, enabledGame, (cmd) => emitted.push(cmd));
-    const res = sandbox.invokeHook('on_init');
+    const res = sandbox.invokeHook('on_init', 0.25);
     expect(res.ok).toBe(true);
     expect(emitted).toEqual([
       { name: 'set_speed', data: { multiplier: 1.6 } },

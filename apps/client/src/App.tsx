@@ -33,11 +33,18 @@ import {
 } from './components/CyberUI.js';
 import { SandboxRunner } from './runner/SandboxRunner.js';
 import { cyberSynth } from './audio/synth.js';
+import { WebPortsCatalogView } from './components/WebPortsCatalogView.js';
+import { CloudStreamView } from './components/CloudStreamView.js';
+import { ComputePoolDashboard } from './components/ComputePoolDashboard.js';
+import { WEB_GAME_PORTS } from './data/webPortsCatalog.js';
 
 export type ScreenId =
   | 'lobby'
   | 'detail'
   | 'play'
+  | 'webports'
+  | 'cloudstream'
+  | 'computepool'
   | 'rooms'
   | 'nodes'
   | 'lab'
@@ -60,11 +67,12 @@ export function App(): JSX.Element {
   const initialData = useRef(buildInitialCatalogAndFederation());
   const [games, setGames] = useState<CatalogGameItem[]>(initialData.current.games);
   const [nodes, setNodes] = useState<FederatedNodeRecord[]>(initialData.current.nodes);
+  const [userCredits, setUserCredits] = useState<number>(60);
 
   const [screen, setScreen] = useState<ScreenId>(() => {
     const hash = window.location.hash.replace('#/', '');
     if (
-      ['lobby', 'detail', 'play', 'rooms', 'nodes', 'lab', 'settings', 'styleguide'].includes(hash)
+      ['lobby', 'detail', 'play', 'webports', 'cloudstream', 'computepool', 'rooms', 'nodes', 'lab', 'settings', 'styleguide'].includes(hash)
     ) {
       return hash as ScreenId;
     }
@@ -401,6 +409,27 @@ export function App(): JSX.Element {
               onClick={() => navigate('lobby')}
             >
               CATÁLOGO
+            </button>
+            <button
+              type="button"
+              className={`nav-tab ${screen === 'webports' ? 'active' : ''}`}
+              onClick={() => navigate('webports')}
+            >
+              PORTS WEB [{WEB_GAME_PORTS.length}]
+            </button>
+            <button
+              type="button"
+              className={`nav-tab ${screen === 'cloudstream' ? 'active' : ''}`}
+              onClick={() => navigate('cloudstream')}
+            >
+              CLOUD GPU
+            </button>
+            <button
+              type="button"
+              className={`nav-tab ${screen === 'computepool' ? 'active' : ''}`}
+              onClick={() => navigate('computepool')}
+            >
+              POOL & CONTRATO
             </button>
             <button
               type="button"
@@ -775,6 +804,32 @@ export function App(): JSX.Element {
           <SandboxRunner
             game={selectedGame}
             onBack={() => navigate('lobby')}
+            onNotify={pushToast}
+          />
+        )}
+
+        {/* SCREEN: WEB PORTS CATALOG (212 PORTS) */}
+        {screen === 'webports' && (
+          <WebPortsCatalogView onNotify={pushToast} />
+        )}
+
+        {/* SCREEN: CLOUD GAMING & GPU STREAMING (GEFORCE NOW STYLE) */}
+        {screen === 'cloudstream' && (
+          <CloudStreamView
+            userCredits={userCredits}
+            onAddCredits={() => {
+              setUserCredits((prev) => prev + 60);
+              pushToast('CRÉDITOS AÑADIDOS', '+60 minutos de streaming agregados a tu cuenta.', 'green');
+            }}
+            onNotify={pushToast}
+          />
+        )}
+
+        {/* SCREEN: COMPUTE POOL & TRANSPARENT SMART CONTRACT */}
+        {screen === 'computepool' && (
+          <ComputePoolDashboard
+            resourceSupportEnabled={resourceSupportEnabled}
+            onToggleSupport={(enabled) => setResourceSupportEnabled(enabled)}
             onNotify={pushToast}
           />
         )}
